@@ -91,7 +91,7 @@ fn stop(f_x_old: f64, f_x: f64) -> bool {
 /// - `x0` is an initial guess for `x`. Often this is chosen randomly.
 /// - `f` is the objective function
 /// - `g` is the gradient of `f`
-pub fn bfgs<F, G>(x0: Array1<f64>, mut f: F) -> Result<Array1<f64>, ()>
+pub fn bfgs<F>(x0: Array1<f64>, mut f: F) -> Result<Array1<f64>, ()>
     where
         F: FnMut(&Array1<f64>) -> (f64, Array1<f64>),
 {
