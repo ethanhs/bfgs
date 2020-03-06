@@ -91,14 +91,12 @@ fn stop(f_x_old: f64, f_x: f64) -> bool {
 /// - `x0` is an initial guess for `x`. Often this is chosen randomly.
 /// - `f` is the objective function
 /// - `g` is the gradient of `f`
-pub fn bfgs<F, G>(x0: Array1<f64>, mut f: F, mut g: G) -> Result<Array1<f64>, ()>
+pub fn bfgs<F, G>(x0: Array1<f64>, mut f: F) -> Result<Array1<f64>, ()>
     where
-        F: FnMut(&Array1<f64>) -> f64,
-        G: FnMut(&Array1<f64>) -> Array1<f64>,
+        F: FnMut(&Array1<f64>) -> (f64, Array1<f64>),
 {
     let mut x = x0;
-    let mut f_x = f(&x);
-    let mut g_x = g(&x);
+    let (mut f_x, mut g_x) = f(&x);
     let p = x.len();
     assert_eq!(g_x.dim(), x.dim());
 
@@ -110,7 +108,7 @@ pub fn bfgs<F, G>(x0: Array1<f64>, mut f: F, mut g: G) -> Result<Array1<f64>, ()
         let search_dir = -1.0 * b_inv.dot(&g_x);
 
         // Find a good step size
-        let epsilon = line_search(|epsilon| f(&(&search_dir * epsilon + &x))).map_err(|_| ())?;
+        let epsilon = line_search(|epsilon| f(&(&search_dir * epsilon + &x)).0).map_err(|_| ())?;
 
         // Save the old values
         let f_x_old = f_x;
@@ -118,8 +116,9 @@ pub fn bfgs<F, G>(x0: Array1<f64>, mut f: F, mut g: G) -> Result<Array1<f64>, ()
 
         // Take a step in the search direction
         x.scaled_add(epsilon, &search_dir);
-        f_x = f(&x);
-        g_x = g(&x);
+        let fg_x = f(&x);
+        f_x = fg_x.0;
+        g_x = fg_x.1;
 
         // Compute deltas between old and new
         let y: Array2<f64> = (&g_x - &g_x_old).into_shape((p, 1)).expect("y into_shape failed");
