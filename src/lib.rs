@@ -1,4 +1,3 @@
-#![feature(alloc_system)]
 #![feature(test)]
 //! This package contains an implementation of
 //! [BFGS](https://en.wikipedia.org/w/index.php?title=BFGS_method), an algorithm for minimizing
@@ -27,7 +26,6 @@
 //!
 //! This project uses [cargo-make](https://sagiegurari.github.io/cargo-make/) for builds; to build,
 //! run `cargo make all`.
-extern crate alloc_system;
 #[cfg_attr(test, macro_use(array))]
 extern crate ndarray;
 #[cfg(test)]
@@ -50,9 +48,9 @@ const F_TOLERANCE: f64 = FACTR * F64_MACHINE_EPSILON;
 
 // Dumbly try many values of epsilon, taking the best one
 // Return the value of epsilon that minimizes f
-fn line_search<F>(f: F) -> Result<f64, ()>
+fn line_search<F>(mut f: F) -> Result<f64, ()>
     where
-        F: Fn(f64) -> f64,
+        F: FnMut(f64) -> f64,
 {
     let mut best_epsilon = 0.0;
     let mut best_val_f = INFINITY;
@@ -93,7 +91,7 @@ fn stop(f_x_old: f64, f_x: f64) -> bool {
 /// - `x0` is an initial guess for `x`. Often this is chosen randomly.
 /// - `f` is the objective function
 /// - `g` is the gradient of `f`
-pub fn bfgs<F, G>(x0: Array1<f64>, f: F, g: G) -> Result<Array1<f64>, ()>
+pub fn bfgs<F, G>(x0: Array1<f64>, mut f: F, mut g: G) -> Result<Array1<f64>, ()>
     where
         F: FnMut(&Array1<f64>) -> f64,
         G: FnMut(&Array1<f64>) -> Array1<f64>,
