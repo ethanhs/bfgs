@@ -95,8 +95,8 @@ fn stop(f_x_old: f64, f_x: f64) -> bool {
 /// - `g` is the gradient of `f`
 pub fn bfgs<F, G>(x0: Array1<f64>, f: F, g: G) -> Result<Array1<f64>, ()>
     where
-        F: Fn(&Array1<f64>) -> f64,
-        G: Fn(&Array1<f64>) -> Array1<f64>,
+        F: FnMut(&Array1<f64>) -> f64,
+        G: FnMut(&Array1<f64>) -> Array1<f64>,
 {
     let mut x = x0;
     let mut f_x = f(&x);
